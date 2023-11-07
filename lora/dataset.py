@@ -3,9 +3,13 @@ import random
 
 import torch
 
+from baichuan2.tokenizer import BaichuanTokenizer
+
 
 class BelleChatDataset(torch.utils.data.IterableDataset):
-    def __init__(self, tokenizer, data_json_path, model_max_length):
+    def __init__(
+        self, tokenizer: BaichuanTokenizer, data_json_path: str, model_max_length: int
+    ):
         self.tokenizer = tokenizer
         self.data_json = json.load(open(data_json_path, "r"))
         random.shuffle(self.data_json)

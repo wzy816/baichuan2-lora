@@ -1,18 +1,12 @@
-from dataclasses import dataclass
-
 import torch
+import torch.nn.functional as F
 
-
-@dataclass
-class LoraConfig:
-    r: int = 1
-    alpha: int = 32
-    dropout: float = 0.1
-    target_module: str = "W_pack"
+from baichuan2.model import BaichuanForCausalLM
+from lora.config import LoraConfig
 
 
 class LoraModel(torch.nn.Module):
-    def __init__(self, base_model, config: LoraConfig):
+    def __init__(self, base_model: BaichuanForCausalLM, config: LoraConfig):
         super().__init__()
         self.config = config
         self.model = self.inject_adapter(base_model)
@@ -20,7 +14,7 @@ class LoraModel(torch.nn.Module):
     def forward(self, input_ids: torch.LongTensor, attention_mask: torch.Tensor):
         return self.model.forward(input_ids, attention_mask)
 
-    def inject_adapter(self, base_model):
+    def inject_adapter(self, base_model: BaichuanForCausalLM):
         for name, module in base_model.named_modules():
             if isinstance(module, torch.nn.Linear):
                 if not name.endswith(f".{self.config.target_module}"):
@@ -54,7 +48,7 @@ class LoraModel(torch.nn.Module):
 
 
 class LoraLinear(torch.nn.Linear):
-    def __init__(self, layer, r, alpha, dropout):
+    def __init__(self, layer: torch.nn.Linear, r: int, alpha: int, dropout: float):
         super().__init__(layer.in_features, layer.out_features)
         self.weight = layer.weight
 
@@ -63,8 +57,8 @@ class LoraLinear(torch.nn.Linear):
         self.lora_B = torch.nn.Linear(r, layer.out_features, bias=False)
         self.scale = alpha / r
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         # weights not merged
-        result = torch.nn.functional.linear(x, self.weight)
+        result = F.linear(x, self.weight)
         result += self.lora_B(self.lora_A(self.lora_dropout(x))) * self.scale
         return result

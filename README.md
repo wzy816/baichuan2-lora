@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 ## Download Weights File and Tokenizer File
 
-from https://huggingface.co/baichuan-inc/Baichuan2-13B-Base/tree/main
+from [huggingface](https://huggingface.co/baichuan-inc/Baichuan2-13B-Base/tree/main)
 
 ```bash
 tree /mnt/Baichuan2-13B-base/
@@ -42,7 +42,7 @@ python3 -m baichuan2.inference \
     --vocab_file=/mnt/Baichuan2-13B-base/tokenizer.model \
     --prompt='登鹳雀楼->王之涣\n夜雨寄北->' \
     --max_new_tokens=128
-    
+
 # 李商隐\n泊秦淮->杜牧\n望庐山瀑布->李白\n春晓->孟浩然\n绝句->杜甫\n出塞->王昌龄\n凉州词->王之涣\n芙蓉楼送辛渐->王昌
 # not optimized, can be slow for long answer
 ```
@@ -55,17 +55,18 @@ python3 -m lora.train \
     --vocab_file='/mnt/Baichuan2-13B-base/tokenizer.model' \
     --checkpoint_dir='/mnt/Baichuan2-13B-base' \
     --data_json_path='./data/belle_chat_ramdon_10k.json' \
+    --config_yaml_path='./config/belle_chat.yaml' \
     --output_dir='/mnt/baichuan2-lora_belle'
-```
-
-## Tune Hyperparam
-
-```bash
-python3 -m lora.tune \
 ```
 
 ## Lora Model Inference
 
 ```bash
 python3 -m lora.inference \
+```
+
+## Tune Hyperparam
+
+```bash
+python3 -m lora.tune \
 ```
