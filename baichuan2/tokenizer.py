@@ -15,9 +15,14 @@ class BaichuanTokenizer():
         self.add_eos_token = False
 
         self.unk_token="<unk>"
+        self.unk_token_id = self.sp_model.piece_to_id(self.unk_token)
         self.bos_token="<s>"
+        self.bos_token_id = self.sp_model.piece_to_id(self.bos_token)
         self.eos_token="</s>"
+        self.eos_token_id = self.sp_model.piece_to_id(self.eos_token)
         self.pad_token="<unk>"
+        self.pad_token_id = self.sp_model.piece_to_id(self.pad_token)
+
 
     def encode(self, text):
         return self.sp_model.Encode(text)

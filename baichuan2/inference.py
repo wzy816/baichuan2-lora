@@ -85,9 +85,9 @@ def main(checkpoint_dir, vocab_file, prompt, max_new_tokens):
     tokenizer = BaichuanTokenizer(vocab_file=vocab_file)
     config = BaichuanConfig()
     assert config.vocab_size == tokenizer.vocab_size()
-    assert config.pad_token_id == tokenizer.piece_to_id(tokenizer.pad_token)
-    assert config.bos_token_id == tokenizer.piece_to_id(tokenizer.bos_token)
-    assert config.eos_token_id == tokenizer.piece_to_id(tokenizer.eos_token)
+    assert config.pad_token_id == tokenizer.pad_token_id
+    assert config.bos_token_id == tokenizer.bos_token_id
+    assert config.eos_token_id == tokenizer.eos_token_id
 
     model = BaichuanForCausalLM(config)
 
@@ -104,7 +104,6 @@ def main(checkpoint_dir, vocab_file, prompt, max_new_tokens):
         gc.collect()
 
     answer_tokens, answer = generate(model, tokenizer, config, prompt, max_new_tokens)
-    print(answer_tokens)
     print(answer)
 
 

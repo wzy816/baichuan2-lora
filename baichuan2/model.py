@@ -27,6 +27,12 @@ class RMSNorm(torch.nn.Module):
         self.epsilon = epsilon
 
     def forward(self, hidden_states):
+#         variance = hidden_states.to(torch.float32).pow(2).mean(-1, keepdim=True)
+#         hidden_states = hidden_states * torch.rsqrt(variance + self.epsilon)
+
+#         if self.weight.dtype in [torch.float16, torch.bfloat16]:
+#             hidden_states = hidden_states.to(self.weight.dtype)
+
         variance = hidden_states.to(torch.float32).pow(2).mean(-1, keepdim=True)
         hidden_states = hidden_states * torch.rsqrt(variance + self.epsilon)
 
@@ -101,10 +107,9 @@ class BaichuanAttention(torch.nn.Module):
         ) / math.sqrt(self.head_dim)
 
         attn_weights = attn_weights + attention_mask
-        attn_weights = torch.max(
-            attn_weights, torch.tensor(torch.finfo(attn_weights.dtype).min)
-        )
-
+#         attn_weights = torch.max(
+#             attn_weights, torch.tensor(torch.finfo(attn_weights.dtype).min)
+#         )
         attn_weights = torch.nn.functional.softmax(attn_weights, dim=-1)
         attn_output = torch.matmul(attn_weights, value_states)
         attn_output = attn_output.transpose(1, 2)
@@ -176,9 +181,12 @@ class BaichuanModel(torch.nn.Module):
         )
 
         bias = m * position_point.unsqueeze(0)
-        bias = bias + torch.triu(
-            torch.full((seq_len, seq_len), float("-inf")), diagonal=1
-        )
+        mask = torch.zeros((seq_len, seq_len)).float().fill_(-10000)
+#         mask = torch.zeros((seq_len, seq_len)).float().fill_(-math.inf)
+        mask = torch.triu(mask, diagonal=1)
+        bias = bias + mask
+        
+        
         return bias
 
     def forward(
@@ -198,14 +206,18 @@ class BaichuanModel(torch.nn.Module):
         else:
             # attention_mask equals input_ids.ne(pad token id)
             mask = attention_mask.to(torch.float32)  # (batch_size, seq_len)
-            mask = 1 - torch.tril(mask[:, :, None] * mask[:, None, :], diagonal=0)
-            mask = mask.masked_fill(mask > 0, float("-inf"))
+            mask = mask[:, :, None] * mask[:, None, :]
+            mask = 1 - torch.tril(mask.float(), diagonal=0)
+            mask = mask.masked_fill(mask > 0, -10000)
+#             mask = mask.masked_fill(mask > 0, -math.inf)
             mask = (
                 mask.unsqueeze(1).expand(batch_size, 1, seq_length, seq_length).cuda()
             )
             attention_mask = mask + alibi_mask
 
         hidden_states = inputs_embeds
+        attention_mask = attention_mask.to(hidden_states.dtype)
+        
         for _, decoder_layer in enumerate(self.layers):
             hidden_states = decoder_layer(
                 hidden_states,

@@ -4,7 +4,7 @@ Fine-tuning baichuan2 13B base model using low-rank adaptation (LoRA).
 
 ## Feature
 
-- baichuan2 code rewrite and  simplified to minimum
+- baichuan2 code rewrite and lora implementation simplified
 - fix alibi mask [issue](https://github.com/baichuan-inc/Baichuan2/issues/225)
 - remove peft, deepspeed and transformers dependency
 - training on a single GPU 80G
@@ -34,7 +34,7 @@ tree /mnt/Baichuan2-13B-base/
 # Other files are optional.
 ```
 
-## Inference
+## Base Model Inference
 
 ```bash
 python3 -m baichuan2.inference \
@@ -45,4 +45,27 @@ python3 -m baichuan2.inference \
     
 # 李商隐\n泊秦淮->杜牧\n望庐山瀑布->李白\n春晓->孟浩然\n绝句->杜甫\n出塞->王昌龄\n凉州词->王之涣\n芙蓉楼送辛渐->王昌
 # not optimized, can be slow for long answer
+```
+
+## Train with Belle Chat
+
+```bash
+python3 -m lora.train \
+    --project='baichuan2-lora_belle' \
+    --vocab_file='/mnt/Baichuan2-13B-base/tokenizer.model' \
+    --checkpoint_dir='/mnt/Baichuan2-13B-base' \
+    --data_json_path='./data/belle_chat_ramdon_10k.json' \
+    --output_dir='/mnt/baichuan2-lora_belle'
+```
+
+## Tune Hyperparam
+
+```bash
+python3 -m lora.tune \
+```
+
+## Lora Model Inference
+
+```bash
+python3 -m lora.inference \
 ```
