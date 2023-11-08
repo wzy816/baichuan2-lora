@@ -51,8 +51,10 @@ class Trainer:
         self.lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(
             self.optimizer, gamma=self.lora_config.gamma
         )
+        self.last_save_loss = None
+        self.last_save_step = 0
 
-    def train(self, use_wandb: bool = True):
+    def train(self, use_wandb: bool = True, use_tqdm: bool = True):
         if use_wandb:
             wandb.init(project=self.project, name=self.name, config=self.lora_config)
             wandb.watch(self.lora_model, log="all")
@@ -60,22 +62,23 @@ class Trainer:
         self.lora_model.train()
 
         step = 0
-        loss = 100
         token_cnt = 0
-        last_save_loss = None
-        last_save_step = 0
 
         for epoch in range(self.lora_config.num_epochs):
             loader = DataLoader(self.dataset, batch_size=self.lora_config.batch_size)
             it = iter(loader)
 
-            one_epoch_steps = int(
+            epoch_steps = int(
                 len(self.dataset)
                 / self.lora_config.batch_size
                 / self.lora_config.micro_batch_size
             )
 
-            for _ in tqdm(range(one_epoch_steps), desc=f"epoch {epoch}"):
+            epoch_steps = range(epoch_steps)
+            if use_tqdm:
+                epoch_steps = tqdm(epoch_steps, desc=f"epoch {epoch}")
+
+            for _ in epoch_steps:
                 lr = self.optimizer.param_groups[0]["lr"]
 
                 self.optimizer.zero_grad(set_to_none=True)
@@ -100,12 +103,12 @@ class Trainer:
                         step=step,
                     )
 
-                if last_save_loss is None or loss < last_save_loss:
-                    if step - last_save_step >= self.lora_config.min_save_step:
+                if self.last_save_loss is None or loss < self.last_save_loss:
+                    if step - self.last_save_step >= self.lora_config.min_save_step:
                         if loss <= self.lora_config.max_save_loss:
                             self.save(step, loss)
-                            last_save_step = step
-                            last_save_loss = loss
+                            self.last_save_step = step
+                            self.last_save_loss = loss
 
                 self.optimizer.step()
                 step += 1
@@ -141,6 +144,8 @@ def train(
     data_json_path: str,
     lora_config: LoraConfig,
     output_dir: str,
+    use_wandb: bool = True,
+    use_tqdm: bool = True,
 ):
     # tokenizer
     tokenizer = BaichuanTokenizer(vocab_file=vocab_file)
@@ -164,7 +169,9 @@ def train(
         lora_config,
         output_dir,
     )
-    trainer.train()
+    trainer.train(use_wandb=use_wandb, use_tqdm=use_tqdm)
+
+    return int(trainer.last_save_loss)
 
 
 @click.command()
