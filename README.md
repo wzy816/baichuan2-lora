@@ -59,14 +59,21 @@ python3 -m lora.train \
     --output_dir='/mnt/baichuan2-lora_belle'
 ```
 
+## Hyperparam Search
+
+```bash
+python3 -m lora.search \
+    --project='baichuan2-lora_belle' \
+    --vocab_file='/mnt/Baichuan2-13B-base/tokenizer.model' \
+    --checkpoint_dir='/mnt/Baichuan2-13B-base' \
+    --data_json_path='/mnt/baichuan2-lora/data/belle_chat_ramdon_10k.json' \
+    --output_dir='/mnt/baichuan2-lora_belle'
+
+wandb sync --sync-all
+```
+
 ## Lora Model Inference
 
 ```bash
 python3 -m lora.inference \
-```
-
-## Tune Hyperparam
-
-```bash
-python3 -m lora.tune \
 ```

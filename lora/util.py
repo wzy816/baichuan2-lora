@@ -10,10 +10,14 @@ from baichuan2.model import BaichuanConfig, BaichuanForCausalLM
 from lora.config import LoraConfig
 
 
-def load_base_model(checkpoint_dir, dtype=torch.bfloat16) -> BaichuanForCausalLM:
+def load_base_model(
+    checkpoint_dir,
+    dtype=torch.bfloat16,
+    model_config: BaichuanConfig = BaichuanConfig(),
+) -> BaichuanForCausalLM:
     torch.set_default_device("cuda")
     torch.set_default_dtype(dtype)
-    model_config = BaichuanConfig()
+
     base_model = BaichuanForCausalLM(model_config)
 
     shard_files = [
@@ -32,7 +36,7 @@ def load_base_model(checkpoint_dir, dtype=torch.bfloat16) -> BaichuanForCausalLM
 
 
 def load_lora_config(config_yaml_path: Optional[str] = None) -> LoraConfig:
-    if config_yaml_path is not None and os.path.isfile(config_yaml_path):
+    if config_yaml_path is not None:
         with open(config_yaml_path, "r", encoding="utf8") as f:
             d = yaml.safe_load(f)
             return LoraConfig(**d)

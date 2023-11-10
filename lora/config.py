@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class LoraConfig:
     r: int = 16
     alpha: int = 32
-    dropout: float = 0.1
+    dropout: float = 0.05
     target_module: str = "W_pack"
 
     # train

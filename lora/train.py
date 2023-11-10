@@ -8,11 +8,11 @@ import click
 import torch
 import torch.nn.functional as F
 import wandb
-import yaml
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+from baichuan2.model import BaichuanConfig
 from baichuan2.tokenizer import BaichuanTokenizer
 from lora.config import LoraConfig
 from lora.dataset import BelleChatDataset
@@ -53,10 +53,16 @@ class Trainer:
         )
         self.last_save_loss = None
         self.last_save_step = 0
+        self.best_loss = math.inf
 
-    def train(self, use_wandb: bool = True, use_tqdm: bool = True):
+    def train(self, use_wandb: bool, use_tqdm: bool, wandb_mode: str):
         if use_wandb:
-            wandb.init(project=self.project, name=self.name, config=self.lora_config)
+            wandb.init(
+                project=self.project,
+                name=self.name,
+                config=self.lora_config,
+                mode=wandb_mode,
+            )
             wandb.watch(self.lora_model, log="all")
 
         self.lora_model.train()
@@ -110,6 +116,9 @@ class Trainer:
                             self.last_save_step = step
                             self.last_save_loss = loss
 
+                if loss < self.best_loss:
+                    self.best_loss = loss
+
                 self.optimizer.step()
                 step += 1
 
@@ -146,21 +155,19 @@ def train(
     output_dir: str,
     use_wandb: bool = True,
     use_tqdm: bool = True,
+    wandb_mode: str = "online",
 ):
-    # tokenizer
     tokenizer = BaichuanTokenizer(vocab_file=vocab_file)
 
-    # load base model
-    base_model = load_base_model(checkpoint_dir)
+    model_config = BaichuanConfig()
+    base_model = load_base_model(checkpoint_dir, torch.bfloat16, model_config)
 
-    # dataset
     dataset = BelleChatDataset(
         tokenizer=tokenizer,
         data_json_path=data_json_path,
-        model_max_length=1024,
+        model_max_length=1024,  # model_config.model_max_length
     )
 
-    # trainer
     trainer = Trainer(
         project,
         dataset,
@@ -169,9 +176,11 @@ def train(
         lora_config,
         output_dir,
     )
-    trainer.train(use_wandb=use_wandb, use_tqdm=use_tqdm)
-
-    return int(trainer.last_save_loss)
+    trainer.train(
+        use_wandb=use_wandb,
+        use_tqdm=use_tqdm,
+        wandb_mode=wandb_mode,
+    )
 
 
 @click.command()

@@ -1,9 +1,9 @@
+import time
 from dataclasses import replace
+from itertools import product
+from functools import reduce
 
 import click
-import torch
-from ray import train as ray_train
-from ray import tune
 
 from lora.train import train
 from lora.util import load_lora_config
@@ -24,12 +24,27 @@ def main(
     config_yaml_path,
     output_dir,
 ):
-    def objective(config):
-        assert torch.cuda.is_available()
-        lora_config = load_lora_config(config_yaml_path)
-        lora_config = replace(lora_config, **config)
+    params = {
+        "r": [1, 4, 16, 64],
+        "dropout": [0.1, 0.05, 0],
+        "alpha": [32, 64],
+        "lr": [2e-5, 2e-4],
+        "num_epochs": [1],
+        "batch_size": [2],
+        "micro_batch_size": [8],
+    }
+    combinations = product(*params.values())
+    total_combinations = reduce(lambda x, y: x * y, [len(v) for v in params.values()])
+    
+    for idx, values in enumerate(combinations):
+        config = {}
+        for k, v in zip(params.keys(), values):
+            config[k] = v
 
-        last_save_loss = train(
+        lora_config = replace(load_lora_config(config_yaml_path), **config)
+        print(f'combo {idx} / {total_combinations}',lora_config)
+        
+        train(
             project,
             vocab_file,
             checkpoint_dir,
@@ -37,23 +52,10 @@ def main(
             lora_config,
             output_dir,
             use_wandb=True,
-            use_tqdm=False,
+            use_tqdm=True,
+            wandb_mode='offline',
         )
-        ray_train.report({"last_save_loss": last_save_loss})
-
-    config = {
-        "r": tune.grid_search([1, 4, 16, 64]),
-        "dropout": tune.grid_search([0.1, 0.05, 0]),
-        "alpha": tune.grid_search([32, 64]),
-        "lr": tune.grid_search([2e-5, 2e-4]),
-        "num_epochs": 1,
-        "batch_size": 2,
-        "micro_batch_size": 4,
-    }
-
-    tuner = tune.Tuner(tune.with_resources(objective, {"gpu": 1}), param_space=config)
-    results = tuner.fit()
-    print(results.get_best_result().config)
+        time.sleep(20)
 
 
 if __name__ == "__main__":
