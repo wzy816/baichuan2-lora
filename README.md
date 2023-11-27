@@ -71,9 +71,11 @@ python3 -m lora.search \
 
 wandb sync --sync-all
 ```
+[viz notebook](hyperparam visualization.ipynb)
 
 ## Lora Model Inference
 
 ```bash
 python3 -m lora.inference \
+
 ```

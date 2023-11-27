@@ -25,10 +25,10 @@ def main(
     output_dir,
 ):
     params = {
-        "r": [1, 4, 16, 64],
-        "dropout": [0.1, 0.05, 0],
-        "alpha": [32, 64],
-        "lr": [2e-5, 2e-4],
+        "r": [1, 2, 4, 8, 16, 32, 64],
+        "dropout": [0.2, 0.1, 0.05, 0.01, 0],
+        "alpha": [1, 2, 4, 8], # [16, 32, 64],
+        "lr": [2e-5],
         "num_epochs": [1],
         "batch_size": [2],
         "micro_batch_size": [8],
