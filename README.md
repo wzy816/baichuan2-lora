@@ -71,8 +71,12 @@ python3 -m lora.search \
 
 wandb sync --sync-all
 ```
+<<<<<<< Updated upstream
 
 [viz notebook](hyperparam%20visualization.ipynb)
+=======
+[viz notebook](./hyperparam visualization.ipynb)
+>>>>>>> Stashed changes
 
 ## Lora Model Inference
 
