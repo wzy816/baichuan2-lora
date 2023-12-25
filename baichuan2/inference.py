@@ -4,9 +4,10 @@ import os
 import click
 import torch
 import torch.nn.functional as F
+from tqdm import tqdm
+
 from baichuan2.model import BaichuanConfig, BaichuanForCausalLM
 from baichuan2.tokenizer import BaichuanTokenizer
-from tqdm import tqdm
 
 
 def top_k_top_p_filtering(

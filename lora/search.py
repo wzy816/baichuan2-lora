@@ -1,7 +1,7 @@
 import time
 from dataclasses import replace
-from itertools import product
 from functools import reduce
+from itertools import product
 
 import click
 
@@ -24,28 +24,29 @@ def main(
     config_yaml_path,
     output_dir,
 ):
+    # search l, alpha, lr
     params = {
-        "r": [16,32,64,128],
+        "r": [16, 32, 64, 128],
         "dropout": [0.01],
-        "alpha": [16,32,64,128],
-        "lr": [2e-3,2e-4,2e-5],
+        "alpha": [16, 32, 64, 128],
+        "lr": [2e-3, 2e-4, 2e-5],
         "num_epochs": [1],
         "batch_size": [2],
         "micro_batch_size": [100],
-        "num_samples": [40000]
+        "num_samples": [40000],
     }
     combinations = product(*params.values())
     total_combinations = reduce(lambda x, y: x * y, [len(v) for v in params.values()])
-    
+
     for idx, values in enumerate(combinations):
         config = {}
         for k, v in zip(params.keys(), values):
             config[k] = v
 
-        if config['r'] / config['alpha'] > 2 or config['r'] / config['alpha'] < 1/2:
+        if config["r"] / config["alpha"] > 2 or config["r"] / config["alpha"] < 1 / 2:
             continue
         lora_config = replace(load_lora_config(config_yaml_path), **config)
-        print(f'combo {idx} / {total_combinations}',lora_config)
+        print(f"combo {idx} / {total_combinations}", lora_config)
 
         train(
             project,
@@ -56,7 +57,7 @@ def main(
             output_dir,
             use_wandb=True,
             use_tqdm=True,
-            wandb_mode='offline',
+            wandb_mode="offline",
             shuffle_dataset=False,
         )
         time.sleep(20)

@@ -1,7 +1,7 @@
 import gc
+import json
 import os
 from typing import Optional
-import json
 
 import torch
 import yaml

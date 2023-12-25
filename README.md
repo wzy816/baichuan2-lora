@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
 ## Download Weights File and Tokenizer File
 
-from [huggingface](https://huggingface.co/baichuan-inc/Baichuan2-13B-Base/tree/main)
+From Baichuan2-13B-Base at [huggingface](https://huggingface.co/baichuan-inc/Baichuan2-13B-Base/tree/main).
 
 ```bash
 tree /mnt/Baichuan2-13B-base/
@@ -46,7 +46,49 @@ python3 -m baichuan2.inference \
 # not optimized, can be slow for long answer
 ```
 
-## Hyperparam Search
+## Dataset
+
+Reformat [multiturn_chat_0.8M](https://huggingface.co/datasets/BelleGroup/multiturn_chat_0.8M) dataset to fit finetune code.
+
+```json
+[
+  {
+    "id": 0,
+    "conversations": [
+      {
+        "from": "human",
+        "value": "你好，你能帮我解答一个问题吗？"
+      },
+      {
+        "from": "gpt",
+        "value": " 当然，请问有什么问题？"
+      },
+      {
+        "from": "human",
+        "value": "我想了解人工智能的未来发展方向，你有什么想法吗？"
+      },
+      {
+        "from": "gpt",
+        "value": " 人工智能在未来的发展方向可能包括更强大的机器学习算法，更先进的自然语言处理技术，以及更加智能的机器人。此外，人工智能还可以帮助解决许多现实世界的问题，例如自动化和改善医疗保健等领域。"
+      },
+      {
+        "from": "human",
+        "value": "听起来很不错。人工智能可能在哪些方面面临挑战呢？"
+      },
+      {
+        "from": "gpt",
+        "value": " 人工智能面临的挑战包括数据隐私、安全和道德方面的问题，以及影响就业机会的自动化等问题。此外，人工智能可能会带来不平等和歧视风险，这也是需要关注的问题。"
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "conversations": []
+  }
+]
+```
+
+## Hyperparameter Search
 
 ```bash
 wandb offline
@@ -61,7 +103,7 @@ python3 -m lora.search \
 wandb sync --sync-all
 ```
 
-## Train
+## Finetune
 
 ```bash
 wandb online

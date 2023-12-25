@@ -21,7 +21,7 @@ def build_from_conversation(
         value = tokenizer.encode(i["value"])
         if i["from"] == "human":
             input_ids += [human] + value
-            labels += [ignore] * (len(value)+1)
+            labels += [ignore] * (len(value) + 1)
         elif i["from"] == "gpt":
             input_ids += [gpt] + value
             labels += value + [tokenizer.eos_token_id]
@@ -29,10 +29,13 @@ def build_from_conversation(
     return input_ids, labels
 
 
-#[{"id":0,"conversations":[{"from":"human","value":""},{"from":"gpt","value":""},...]},{"id":1...},...]
 class ChatDataset(torch.utils.data.IterableDataset):
     def __init__(
-        self, tokenizer: BaichuanTokenizer, data_json_path: str, model_max_length: int, shuffle_dataset: bool
+        self,
+        tokenizer: BaichuanTokenizer,
+        data_json_path: str,
+        model_max_length: int,
+        shuffle_dataset: bool,
     ):
         self.tokenizer = tokenizer
         self.data_json = json.load(open(data_json_path, "r", encoding="utf-8"))
