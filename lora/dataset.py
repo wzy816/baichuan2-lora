@@ -16,28 +16,28 @@ def build_from_conversation(
     input_ids = []
     labels = []
 
+    # diff from https://github.com/baichuan-inc/Baichuan2/blob/10b6e6e220aee107e3206a4b9d23a414586588c4/fine-tune/fine-tune.py#L79C1-L86C58
     for i in conversations:
         value = tokenizer.encode(i["value"])
         if i["from"] == "human":
             input_ids += [human] + value
-            labels += [tokenizer.eos_token_id] + [ignore] * len(value)
+            labels += [ignore] * (len(value)+1)
         elif i["from"] == "gpt":
             input_ids += [gpt] + value
-            labels += [ignore] + value
-
-    input_ids = input_ids + [tokenizer.eos_token_id]
-    labels = labels + [tokenizer.eos_token_id]
+            labels += value + [tokenizer.eos_token_id]
 
     return input_ids, labels
 
 
-class BelleChatDataset(torch.utils.data.IterableDataset):
+#[{"id":0,"conversations":[{"from":"human","value":""},{"from":"gpt","value":""},...]},{"id":1...},...]
+class ChatDataset(torch.utils.data.IterableDataset):
     def __init__(
-        self, tokenizer: BaichuanTokenizer, data_json_path: str, model_max_length: int
+        self, tokenizer: BaichuanTokenizer, data_json_path: str, model_max_length: int, shuffle_dataset: bool
     ):
         self.tokenizer = tokenizer
         self.data_json = json.load(open(data_json_path, "r", encoding="utf-8"))
-        random.shuffle(self.data_json)
+        if shuffle_dataset:
+            random.shuffle(self.data_json)
         self.model_max_length = model_max_length
 
     def __len__(self):

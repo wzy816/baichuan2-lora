@@ -15,7 +15,7 @@ from tqdm import tqdm
 from baichuan2.model import BaichuanConfig
 from baichuan2.tokenizer import BaichuanTokenizer
 from lora.config import LoraConfig
-from lora.dataset import BelleChatDataset
+from lora.dataset import ChatDataset
 from lora.model import LoraModel
 from lora.util import load_base_model, load_lora_config
 
@@ -74,8 +74,13 @@ class Trainer:
             loader = DataLoader(self.dataset, batch_size=self.lora_config.batch_size)
             it = iter(loader)
 
+            if self.lora_config.num_samples == -1:
+                num_samples = len(self.dataset)
+            else:
+                num_samples = self.lora_config.num_samples
+
             epoch_steps = int(
-                len(self.dataset)
+                num_samples
                 / self.lora_config.batch_size
                 / self.lora_config.micro_batch_size
             )
@@ -156,16 +161,18 @@ def train(
     use_wandb: bool = True,
     use_tqdm: bool = True,
     wandb_mode: str = "online",
+    shuffle_dataset: bool = True,
 ):
     tokenizer = BaichuanTokenizer(vocab_file=vocab_file)
 
     model_config = BaichuanConfig()
     base_model = load_base_model(checkpoint_dir, torch.bfloat16, model_config)
 
-    dataset = BelleChatDataset(
+    dataset = ChatDataset(
         tokenizer=tokenizer,
         data_json_path=data_json_path,
         model_max_length=1024,  # model_config.model_max_length
+        shuffle_dataset=shuffle_dataset,
     )
 
     trainer = Trainer(
@@ -188,17 +195,17 @@ def train(
 @click.option("vocab_file", "--vocab_file", required=True)
 @click.option("checkpoint_dir", "--checkpoint_dir", required=True)
 @click.option("data_json_path", "--data_json_path", required=True)
-@click.option("config_yaml_path", "--config_yaml_path", required=False)
+@click.option("config_path", "--config_path", required=False)
 @click.option("output_dir", "--output_dir", required=True)
 def main(
     project,
     vocab_file,
     checkpoint_dir,
     data_json_path,
-    config_yaml_path,
+    config_path,
     output_dir,
 ):
-    lora_config = load_lora_config(config_yaml_path)
+    lora_config = load_lora_config(config_path)
     train(
         project,
         vocab_file,

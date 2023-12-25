@@ -15,10 +15,11 @@ from lora.util import load_base_model, load_lora_config
 
 
 @torch.inference_mode()
-def generate(model, tokenizer, chat_prompt, model_max_length, max_new_tokens):
-    conversations = json.loads(chat_prompt)
+def generate(model, tokenizer, prompt, model_max_length, max_new_tokens):
+    conversations = json.loads(prompt)
 
-    prompt_tokens, _ = build_from_conversation(tokenizer, conversations)
+    prompt_tokens, labels = build_from_conversation(tokenizer, conversations)
+    prompt_tokens += [196]
     tokens = (
         torch.full((1, len(prompt_tokens) + max_new_tokens), tokenizer.pad_token_id)
         .long()
@@ -54,6 +55,7 @@ def generate(model, tokenizer, chat_prompt, model_max_length, max_new_tokens):
         if next_token == tokenizer.eos_token_id:
             t = tokens[0, len(prompt_tokens) : end].tolist()
             return t, tokenizer.decode(t)
+
     t = tokens[0, len(prompt_tokens) :].tolist()
     return t, tokenizer.decode(t)
 
@@ -61,26 +63,26 @@ def generate(model, tokenizer, chat_prompt, model_max_length, max_new_tokens):
 @click.command()
 @click.option("vocab_file", "--vocab_file", required=True)
 @click.option("checkpoint_dir", "--checkpoint_dir", required=True)
-@click.option("lora_dir", "--lora_dir", required=True)
-@click.option("chat_prompt", "--chat_prompt", required=True)
+@click.option("lora_checkpoint_dir", "--lora_checkpoint_dir", required=True)
+@click.option("prompt", "--prompt", required=True)
 @click.option("max_new_tokens", "--max_new_tokens", required=True, type=int)
-def main(vocab_file, checkpoint_dir, lora_dir, chat_prompt, max_new_tokens):
+def main(vocab_file, checkpoint_dir, lora_checkpoint_dir, prompt, max_new_tokens):
     tokenizer = BaichuanTokenizer(vocab_file=vocab_file)
 
     model_config = BaichuanConfig()
     base_model = load_base_model(checkpoint_dir, torch.float32, model_config)
 
-    assert os.path.exists(lora_dir)
-    lora_config = load_lora_config(f"{lora_dir}/lora_config.json")
+    assert os.path.exists(lora_checkpoint_dir)
+    lora_config = load_lora_config(f"{lora_checkpoint_dir}/lora_config.json")
     lora_model = LoraModel(base_model=base_model, config=lora_config)
-    state = torch.load(f"{lora_dir}/weights.pt", map_location="cuda:0")
+    state = torch.load(f"{lora_checkpoint_dir}/weights.pt", map_location="cuda:0")
     lora_model.load_state_dict(state, strict=False)
 
     _, answer = generate(
         lora_model,
         tokenizer,
-        chat_prompt,
-        1024,  # model_config.model_max_length
+        prompt,
+        4096,  # model_config.model_max_length
         max_new_tokens,
     )
     print(answer)

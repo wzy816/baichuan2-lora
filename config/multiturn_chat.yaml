@@ -1,21 +1,21 @@
 # model
-r:  4
-alpha: 4
-dropout:  0.1
+r:  64
+alpha: 128
+dropout:  0.01
 target_module: 'W_pack'
 
 # train
-num_epochs:  8
+num_epochs:  4
 batch_size:  2
-micro_batch_size:  4
-num_samples: -1
+micro_batch_size:  200
+num_samples: 200000
 
 # save
 min_save_step:  20
 max_save_loss: 10.0
 
 # optimizer
-lr: 2.0e-5
+lr: 2.0e-4
 weight_decay: 0.1
 
 # scheduler

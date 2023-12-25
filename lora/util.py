@@ -1,6 +1,7 @@
 import gc
 import os
 from typing import Optional
+import json
 
 import torch
 import yaml
@@ -35,10 +36,19 @@ def load_base_model(
     return base_model
 
 
-def load_lora_config(config_yaml_path: Optional[str] = None) -> LoraConfig:
-    if config_yaml_path is not None:
-        with open(config_yaml_path, "r", encoding="utf8") as f:
-            d = yaml.safe_load(f)
+def load_lora_config(config_path: Optional[str] = None) -> LoraConfig:
+    if config_path is not None:
+        if config_path.endswith(".yaml"):
+            with open(config_path, "r", encoding="utf8") as f:
+                d = yaml.safe_load(f)
+                return LoraConfig(**d)
+
+        elif config_path.endswith(".json"):
+            j = json.load(open(config_path, "r", encoding="utf8"))
+            d = json.loads(j)
             return LoraConfig(**d)
+
+        else:
+            raise Exception("unsupported config format")
     else:
         return LoraConfig()

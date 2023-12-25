@@ -12,6 +12,7 @@ class LoraConfig:
     num_epochs: int = 2
     batch_size: int = 2
     micro_batch_size: int = 4
+    num_samples: int = -1
 
     # save
     min_save_step: int = 20

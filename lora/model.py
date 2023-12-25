@@ -1,3 +1,4 @@
+from typing import Optional
 import torch
 import torch.nn.functional as F
 
@@ -11,7 +12,7 @@ class LoraModel(torch.nn.Module):
         self.config = config
         self.model = self.inject_adapter(base_model)
 
-    def forward(self, input_ids: torch.LongTensor, attention_mask: torch.Tensor):
+    def forward(self, input_ids: torch.LongTensor, attention_mask: Optional[torch.Tensor] = None):
         return self.model.forward(input_ids, attention_mask)
 
     def inject_adapter(self, base_model: BaichuanForCausalLM):
