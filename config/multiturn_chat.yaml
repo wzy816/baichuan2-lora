@@ -1,14 +1,14 @@
 # model
 r:  64
 alpha: 128
-dropout:  0.01
+dropout:  0
 target_module: 'W_pack'
 
 # train
-num_epochs:  4
+num_epochs: 2
 batch_size:  2
 micro_batch_size:  200
-num_samples: 200000
+num_samples: -1
 
 # save
 min_save_step:  20

@@ -15,9 +15,7 @@ from lora.util import load_base_model, load_lora_config
 
 
 @torch.inference_mode()
-def generate(model, tokenizer, prompt, model_max_length, max_new_tokens):
-    conversations = json.loads(prompt)
-
+def generate(model, tokenizer, conversations, model_max_length, max_new_tokens):
     prompt_tokens, labels = build_from_conversation(tokenizer, conversations)
     prompt_tokens += [196]
     tokens = (
@@ -78,10 +76,11 @@ def main(vocab_file, checkpoint_dir, lora_checkpoint_dir, prompt, max_new_tokens
     state = torch.load(f"{lora_checkpoint_dir}/weights.pt", map_location="cuda:0")
     lora_model.load_state_dict(state, strict=False)
 
-    _, answer = generate(
+    conversations = json.loads(prompt)
+    answer_token, answer = generate(
         lora_model,
         tokenizer,
-        prompt,
+        conversations,
         4096,  # model_config.model_max_length
         max_new_tokens,
     )
