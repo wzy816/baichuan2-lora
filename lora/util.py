@@ -13,7 +13,7 @@ from lora.config import LoraConfig
 
 def load_base_model(
     checkpoint_dir,
-    dtype=torch.bfloat16,
+    dtype,
     model_config: BaichuanConfig = BaichuanConfig(),
 ) -> BaichuanForCausalLM:
     torch.set_default_device("cuda")

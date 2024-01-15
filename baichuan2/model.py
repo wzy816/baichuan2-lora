@@ -198,7 +198,7 @@ class BaichuanModel(torch.nn.Module):
         inputs_embeds = self.embed_tokens(input_ids)
         alibi_mask = self.alibi_mask(
             self.n_head, seq_length
-        )  # (n_head, seq_len, seq_len)
+        ).cuda()  # (n_head, seq_len, seq_len)
 
         if attention_mask is None:
             attention_mask = alibi_mask

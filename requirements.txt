@@ -3,3 +3,5 @@ sentencepiece==0.1.99
 tqdm==4.65.0
 click==8.1.6
 wandb==0.15.4
+streamlit==1.29.0
+flask==3.0.0

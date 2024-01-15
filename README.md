@@ -131,3 +131,10 @@ python3 -m lora.inference \
 
 # 在即将到来的新年，许多人会计划着度过一个愉快的假日来庆祝新年的到来和迎接新的一年新的开始！那么如何才能快乐呢？以下是一些建议：首先可以和家人朋友一起聚会、旅行或者参加各种活动；其次可以尝试学习新技能或爱好如绘画音乐等; 还可以尝试放松身心比如冥想瑜伽等等!
 ```
+
+## Chat App
+
+```bash
+python3 -m flask --app app.server run
+python3 -m streamlit run app/chat.py
+```
