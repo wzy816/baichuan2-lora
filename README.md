@@ -134,6 +134,8 @@ python3 -m lora.inference \
 
 ## Chat App
 
+![chat app](app/screenshot.png)
+
 ```bash
 python3 -m flask --app app.server run
 python3 -m streamlit run app/chat.py
