@@ -17,7 +17,11 @@ torch.set_default_device("cuda")
 vocab_file = "/mnt/Baichuan2-13B-base/tokenizer.model"
 checkpoint_dir = "/mnt/Baichuan2-13B-base"
 lora_checkpoint_dir = (
-    "/mnt/baichuan2-lora_multiturn/20231225_101753/step=1955_loss=1.773"
+#    "/mnt/baichuan2-lora_multiturn/20231225_101753/step=1955_loss=1.773"
+#    "/mnt/baichuan2-lora_marketing/20240219_143746/step=309_loss=0.001"
+#	"/mnt/baichuan2-lora_marketing/20240220_181148/step=264_loss=1.805"
+#	"/mnt/baichuan2-lora_marketing/20240221_154022/step=221_loss=0.031"
+	"/mnt/baichuan2-lora_marketing/20240225_110213/step=1177_loss=0.014"
 )
 
 tokenizer = BaichuanTokenizer(vocab_file=vocab_file)
@@ -30,7 +34,7 @@ lora_model = LoraModel(base_model=base_model, config=lora_config)
 state = torch.load(f"{lora_checkpoint_dir}/weights.pt", map_location="cuda:0")
 lora_model.load_state_dict(state, strict=False)
 
-max_new_tokens = 128
+max_new_tokens = 2048
 model_max_length = 4096
 
 
@@ -70,7 +74,7 @@ def generate(model, tokenizer, conversations, model_max_length, max_new_tokens):
         next_token_logits = logits[:, -1, :]
 
         # repetition penalty
-        repetition_penalty = 1.2
+        repetition_penalty = 1.05 # 1.2
         score = torch.gather(next_token_logits, 1, x)
         score = torch.where(
             score < 0, score * repetition_penalty, score / repetition_penalty

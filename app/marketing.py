@@ -1,8 +1,7 @@
 import requests
 import streamlit as st
 
-st.title("Chat Bot v0.1.0")
-st.text("open-source llm model finetuned on an open multi-turn conversation dataset")
+st.title("营销文案 Bot v0.1.0")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -31,10 +30,12 @@ def enable_input():
     st.session_state["disabled"] = False
 
 
-prompt = st.chat_input("说点啥", on_submit=disable_input)
+prompt = st.chat_input("输入关键词", on_submit=disable_input)
 
 if prompt:
-    st.session_state.messages.append({"from": "human", "value": prompt})
+#    st.session_state.messages.append({"from": "human", "value": prompt})
+	# single turn only
+    st.session_state.messages = [{"from": "human", "value": prompt}]
     with st.chat_message("user"):
         st.markdown(prompt)
 
@@ -47,4 +48,4 @@ if prompt:
         message_placeholder.markdown(full_response)
 
     enable_input()
-    st.session_state.messages.append({"from": "gpt", "value": full_response})
+    st.session_state.messages= [{"from": "human", "value": prompt}, {"from": "gpt", "value": full_response}]

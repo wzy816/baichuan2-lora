@@ -1,0 +1,22 @@
+# model
+r:  64
+alpha: 128
+dropout:  0.01
+target_module: 'W_pack'
+
+# train
+num_epochs: 2
+batch_size:  2
+micro_batch_size:  100
+num_samples: -1
+
+# save
+min_save_step:  20
+max_save_loss: 10.0
+
+# optimizer
+lr: 2.0e-5
+weight_decay: 0.1
+
+# scheduler
+gamma: 0.1
